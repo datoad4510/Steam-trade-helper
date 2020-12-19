@@ -4,8 +4,7 @@
 	"description": "",
 	"main": "main.js",
 	"scripts": {
-		"watch": "webpack --config webpack.common.js --watch",
-		"start": "concurrently \"electron .\" \"npx react-devtools\""
+		"start": "concurrently \"electron .\" \"npx react-devtools\" \" webpack --config webpack.common.js --watch \" "
 	},
 	"repository": {
 		"type": "git",
