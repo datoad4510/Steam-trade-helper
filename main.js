@@ -1,6 +1,6 @@
 const { app, BrowserWindow } = require("electron");
 const path = require("path");
-const os = require("os");
+const convertCsvToXlsx = require("@aternus/csv-to-xlsx");
 
 function createWindow() {
 	const win = new BrowserWindow({
@@ -20,4 +20,17 @@ function createWindow() {
 	} catch (_) {}
 }
 
-app.whenReady().then(createWindow);
+app.whenReady()
+	.then(createWindow)
+	.then(() => {});
+
+let source = path.join(path.join(__dirname, "in", "csv"), "report.csv");
+let destination = path.join(
+	path.join(__dirname, "out", "excel"),
+	"converted_report.xlsx"
+);
+try {
+	convertCsvToXlsx(source, destination);
+} catch (e) {
+	console.error(e.toString());
+}
