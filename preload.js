@@ -2,6 +2,7 @@
 const convertCsvToXlsx = require("@aternus/csv-to-xlsx");
 const path = require("path");
 const fs = require("fs");
+const puppeteer = require("puppeteer");
 
 window.csvToExcel = function (name) {
 	console.log("executed");
@@ -26,4 +27,41 @@ window.csvToExcel = function (name) {
 	} catch (e) {
 		throw e;
 	}
+};
+
+window.searchSteamFriends = async (name, numpages) => {
+	// const waitFor = (delay) =>
+	// 	new Promise((resolve) => setTimeout(resolve, delay));
+
+	let url =
+		"https://steamcommunity.com/search/users/#page=" +
+		numpages +
+		"&text=" +
+		name;
+
+	let browser = await puppeteer.launch({
+		headless: "true",
+	});
+	let page = await browser.newPage();
+
+	await page.goto(url);
+	// await page.waitForFunction(() => {
+	// 	return document.querySelector(
+	// 		"#search_results div.searchPersonaInfo > a.searchPersonaName"
+	// 	);
+	// });
+	// await page.waitForNavigation({ waitUntil: "domcontentloaded" });
+	await page.waitForTimeout(10000);
+	let users = await page.evaluate(() => {
+		let arr = Array.from(document.querySelectorAll(
+			"#search_results div.searchPersonaInfo > a.searchPersonaName"
+		));
+		return arr.map(element => {
+			return element.href;
+		})
+	});
+	console.log(users);
+	await browser.close();
+
+	return users;
 };
