@@ -6,6 +6,8 @@ const puppeteer = require("puppeteer");
 const { parse } = require("json2csv");
 const { get } = require("http");
 
+const steamWebApiKey = "AD2D6E795ECE0C5589872C157A6E750C";
+
 window.csvToExcel = async function (name) {
 	// console.log("executed");
 	let source = path.join(__dirname, "in", "csv", "users.csv");
@@ -118,8 +120,8 @@ window.searchSteamFriends = async (name, pagenum) => {
 	// go to backpack.tf so you can fetch locally... doesn't work
 	// from localhost or steam (different errors)
 
-	url = "https://backpack.tf/developer";
-	await page.goto(url);
+	// url = "https://backpack.tf/developer";
+	// await page.goto(url);
 	console.log("users:", users);
 	const ApiKey = "5feba94f6554887de7260f51";
 	metal_users = [];
@@ -163,7 +165,7 @@ window.searchSteamFriends = async (name, pagenum) => {
 			Link: element.Link,
 			Page: element.Page,
 			ID: element.ID,
-			Metal: metal,
+			Refined: metal,
 		});
 	}
 	console.log(metal_users);
