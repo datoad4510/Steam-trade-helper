@@ -120,129 +120,58 @@ window.searchSteamFriends = async (name, pagenum) => {
 
 	url = "https://backpack.tf/developer";
 	await page.goto(url);
-	let metal_users = await page.evaluate(async (users) => {
-		console.log("users:", users);
-		const ApiKey = "5feba94f6554887de7260f51";
-		// return users.map(async (element) => {
-		// 	let metal;
-		// 	try {
-		// 		console.log(
-		// 			`https://backpack.tf/api/IGetUsers/v3?steamid=${element.ID}&key=${ApiKey}`
-		// 		);
-		// 		metal = await fetch(
-		// 			`https://backpack.tf/api/IGetUsers/v3?steamid=${element.ID}&key=${ApiKey}`
-		// 		)
-		// 			.then((res) => res.json())
-		// 			.then((data) => console.log(data))
-		// 			.then((data) => {
-		// 				const res = data.response;
-		// 				if (res === undefined) {
-		// 					return "-1";
-		// 				} else {
-		// 					return data.response.players[element.ID]
-		// 						.backpack_value["440"];
-		// 				}
-		// 			})
-		// 			.catch((rej) => console.error(rej));
-		// 	} catch (err) {
-		// 		console.error(err);
-		// 	}
-		// 	console.log(metal);
+	console.log("users:", users);
+	const ApiKey = "5feba94f6554887de7260f51";
+	metal_users = [];
+	for (const element of users) {
+		let metal;
+		try {
+			console.log(
+				"Going to fetch",
+				`https://backpack.tf/api/IGetUsers/v3?steamid=${element.ID}&key=${ApiKey}`
+			);
+			metal = await fetch(
+				`https://backpack.tf/api/IGetUsers/v3?steamid=${element.ID}&key=${ApiKey}`
+			)
+				.then((res) => res.json())
+				//.then((data) => console.log("Fetched json: ", data))
+				.then((data) => {
+					let temp;
+					try {
+						temp =
+							data.response.players[element.ID].backpack_value[
+								"440"
+							];
+					} catch {
+						temp = "Private profile or doesn't play TF2";
+					}
 
-		// 	return {
-		// 		Link: element.Link,
-		// 		Page: element.Page,
-		// 		ID: element.ID,
-		// 		Metal: metal,
-		// 	};
-		// });
-		metal_users = [];
-		for (const element of users) {
-			let metal;
-			try {
-				console.log(
-					"Going to fetch",
-					`https://backpack.tf/api/IGetUsers/v3?steamid=${element.ID}&key=${ApiKey}`
-				);
-				metal = await fetch(
-					`https://backpack.tf/api/IGetUsers/v3?steamid=${element.ID}&key=${ApiKey}`
-				)
-					.then((res) => res.json())
-					.then((data) => console.log("Fetched json: ", data))
-					.then((data) => {
-						const res = data.response;
-						if (res === undefined) {
-							return "-1";
-						} else {
-							return data.response.players[element.ID]
-								.backpack_value["440"];
-						}
-					})
-					.catch((rej) => console.error(rej));
-			} catch (err) {
-				console.error(err);
-			}
-			console.log(metal);
-
-			metal_users.push({
-				Link: element.Link,
-				Page: element.Page,
-				ID: element.ID,
-				Metal: metal,
-			});
+					if (temp) {
+						return temp;
+					} else {
+						return "Private profile or doesn't play TF2";
+					}
+				})
+				.catch((rej) => console.error(rej));
+		} catch (err) {
+			console.error(err);
+			return "Private profile or doesn't play TF2";
 		}
-		console.log(metal_users);
-		// 	const getMetal = async (element) => {
-		// 		return await fetch(
-		// 			`https://backpack.tf/api/IGetUsers/v3?steamid=${element.ID}&key=${ApiKey}`
-		// 		)
-		// 			.then((res) => res.json())
-		// 			.then((data) => console.log(data))
-		// 			.then((data) => {
-		// 				const res = data.response;
-		// 				if (res === undefined) {
-		// 					return "-1";
-		// 				} else {
-		// 					return data.response.players[element.ID].backpack_value[
-		// 						"440"
-		// 					];
-		// 				}
-		// 			})
-		// 			.catch((rej) => console.error(rej));
-		// 	};
-		// 	let getData;
-		// 	try {
-		// 		getData = async () => {
-		// 			return Promise.all(
-		// 				users.map((element) => {
-		// 					return {
-		// 						Link: element.Link,
-		// 						Page: element.Page,
-		// 						ID: element.ID,
-		// 						Metal: getMetal(element),
-		// 					};
-		// 				})
-		// 			);
-		// 		};
-		// 	} catch (err) {
-		// 		console.error(err);
-		// 	}
+		console.log(metal);
 
-		// 	await getData()
-		// 		.then((data) => {
-		// 			metal_users = data;
-		// 			console.log(data);
-		// 		})
-		// 		.catch((err) => console.error(err));
-		// }, users);
-
-		await browser.close();
-		return metal_users;
-	}, users);
+		metal_users.push({
+			Link: element.Link,
+			Page: element.Page,
+			ID: element.ID,
+			Metal: metal,
+		});
+	}
+	console.log(metal_users);
+	return metal_users;
 };
 
 window.jsonToCSV = (json) => {
-	const fields = ["Link", "Page", "ID", "Metal"];
+	const fields = ["Link", "Page", "ID", "Refined"];
 	const opts = { fields };
 
 	try {
