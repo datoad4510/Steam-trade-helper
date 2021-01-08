@@ -6,8 +6,6 @@ const puppeteer = require("puppeteer");
 const { parse } = require("json2csv");
 const { get } = require("http");
 
-const steamWebApiKey = "AD2D6E795ECE0C5589872C157A6E750C";
-
 window.csvToExcel = async function (name) {
 	// console.log("executed");
 	let source = path.join(__dirname, "in", "csv", "users.csv");
@@ -99,32 +97,66 @@ window.searchSteamFriends = async (name, pagenum) => {
 		return arr.map((element) => {
 			const link = element.href;
 			let id = link.split("/");
+			let vanity = false;
+			if (id[id.length - 2] === "id") vanity = true;
 			id = id[id.length - 1];
+
 			return {
 				Link: link,
 				Page: pagenum,
 				ID: id,
+				Vanity: vanity,
 			};
 		});
 	}, pagenum);
 	console.log(users);
 
-	// the following works in the console:
-	//  fetch(
-	// 	`https://backpack.tf/api/IGetUsers/v3?steamid=76561198038307626&key=5feba94f6554887de7260f51`
-	// )
-	// 	.then((res) => res.json()).then((data) => {return {
-	// 			Metal: data.response.players["76561198038307626"].backpack_value["440"],
-	// 		};}).then(res => console.log(res))
+	// get info from steam web api
+	const steamWebApiKey = "AD2D6E795ECE0C5589872C157A6E750C";
+	for (const element of users) {
+		if (element.Vanity === true) {
+			// convert to id
+			const temp = await fetch(
+				`https://api.steampowered.com/ISteamUser/ResolveVanityURL/v1/?key=${steamWebApiKey}&vanityurl=${element.ID}`
+			)
+				.then((res) => res.json())
+				.catch((err) => console.error(err));
+			element.ID = temp.response.steamid;
+		}
+		// steam level
+		let level = await fetch(
+			`https://api.steampowered.com/IPlayerService/GetSteamLevel/v1/?key=${steamWebApiKey}&steamid=${element.ID}`
+		)
+			.then((res) => res.json())
+			.catch((err) => console.error(err));
+		level = level.response.player_level;
+		element.Level = level;
 
-	// go to backpack.tf so you can fetch locally... doesn't work
-	// from localhost or steam (different errors)
+		// playtime
+		let playtimes = await fetch(
+			`https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=${steamWebApiKey}&steamid=${element.ID}&include_played_free_games=1&format=json&appids_filter=440`
+		)
+			.then((res) => res.json())
+			.catch((err) => console.error(err));
+		// get array of all games
+		// ! Filtering games not working!
+		playtimes = playtimes.response.games;
+		let playtime = 0;
+		if (playtimes) {
+			for (let i = 0; i < playtimes.length; ++i) {
+				if (playtimes[i].appid === 440) {
+					playtime = playtimes[i].playtime_forever;
+					break;
+				}
+			}
+		}
+		// divide by 60 minutes to get hours
+		element.Playtime = playtime / 60.0;
+		console.log(element);
+	}
 
-	// url = "https://backpack.tf/developer";
-	// await page.goto(url);
 	console.log("users:", users);
 	const ApiKey = "5feba94f6554887de7260f51";
-	metal_users = [];
 	for (const element of users) {
 		let metal;
 		try {
@@ -160,16 +192,11 @@ window.searchSteamFriends = async (name, pagenum) => {
 			return "Private profile or doesn't play TF2";
 		}
 		console.log(metal);
-
-		metal_users.push({
-			Link: element.Link,
-			Page: element.Page,
-			ID: element.ID,
-			Refined: metal,
-		});
+		element.Refined = metal;
 	}
-	console.log(metal_users);
-	return metal_users;
+
+	console.log(users);
+	return users;
 };
 
 window.jsonToCSV = (json) => {
