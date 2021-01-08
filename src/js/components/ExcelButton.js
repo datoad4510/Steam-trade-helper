@@ -1,9 +1,14 @@
 import React, { useState } from "react";
 import ReactDOM from "react-dom";
+import fetch from "node-fetch";
+
+fetch(
+	"https://backpack.tf/api/IGetUsers/v3?steamid=qurdebssicoxle&key=5feba94f6554887de7260f51"
+)
+	.then((res) => res.json())
+	.then((data) => console.log(data));
 
 export default function ExcelButton() {
-
-
 	let searchSteamFriendsMultiPage = async (name, first, last) => {
 		let users = [];
 		for (let i = first; i <= last; ++i) {

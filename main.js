@@ -1,6 +1,7 @@
 const { app, BrowserWindow } = require("electron");
 const path = require("path");
 const convertCsvToXlsx = require("@aternus/csv-to-xlsx");
+//app.commandLine.appendSwitch("disable-features", "OutOfBlinkCors");
 function createWindow() {
 	const win = new BrowserWindow({
 		width: 1200,
@@ -16,8 +17,7 @@ function createWindow() {
 
 	win.loadFile("index.html");
 	try {
-		require("electron-reloader")(module);
+		//require("electron-reloader")(module);
 	} catch (_) {}
 }
-
 app.whenReady().then(createWindow);
