@@ -161,6 +161,7 @@ window.searchSteamFriends = async (name, pagenum) => {
 			let metal;
 			try {
 				console.log(
+					"Going to fetch",
 					`https://backpack.tf/api/IGetUsers/v3?steamid=${element.ID}&key=${ApiKey}`
 				);
 				metal = await fetch(
