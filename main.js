@@ -1,13 +1,15 @@
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, webContents } = require("electron");
 const path = require("path");
 const convertCsvToXlsx = require("@aternus/csv-to-xlsx");
 //app.commandLine.appendSwitch("disable-features", "OutOfBlinkCors");
 // Menu.setApplicationMenu(null);
-let wind;
+
 function createWindow() {
-	const mainWindow = new BrowserWindow({
+	const window = new BrowserWindow({
 		width: 800,
-		height: 600,
+		height: 700,
+		title: "Hydra",
+		icon: "icon/hydra.png",
 		autoHideMenuBar: true,
 		backgroundColor: "white",
 		webPreferences: {
@@ -17,8 +19,34 @@ function createWindow() {
 			preload: path.join(__dirname, "preload.js"),
 		},
 	});
-	mainWindow.loadFile("index.html");
-	mainWindow.webContents.openDevTools({ mode: "detach" });
+	window.loadFile("index.html");
+	// window.webContents.openDevTools({ mode: "right" });
+
+	let devtools = new BrowserWindow({
+		autoHideMenuBar: true,
+		title: "Console",
+		icon: "icon/hydra.png",
+	});
+	window.webContents.setDevToolsWebContents(devtools.webContents);
+	window.webContents.openDevTools({ mode: "detach" });
+
+	// Set the devtools position when the parent window has finished loading.
+	window.webContents.once("did-finish-load", function () {
+		var windowBounds = window.getBounds();
+		devtools.setPosition(
+			windowBounds.x + windowBounds.width,
+			windowBounds.y
+		);
+	});
+
+	// Set the devtools position when the parent window is moved.
+	window.on("move", function () {
+		var windowBounds = window.getBounds();
+		devtools.setPosition(
+			windowBounds.x + windowBounds.width,
+			windowBounds.y
+		);
+	});
 	try {
 		// require("electron-reloader")(module);
 	} catch (_) {}

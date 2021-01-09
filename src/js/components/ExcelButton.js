@@ -85,7 +85,16 @@ export default function ExcelButton() {
 		// save the csv file as an excel file
 		setErrorMessage("");
 		try {
-			await window.csvToExcel(FileName);
+			let currentDateString = new Date()
+				.toLocaleDateString()
+				.split("/")
+				.join(".");
+			// ! setFileName not doing anything!!!!
+			let temp = FileName;
+			if (temp.length === 0) {
+				temp = UserName;
+			}
+			await window.csvToExcel(temp + " " + currentDateString);
 		} catch (e) {
 			console.log(e);
 			setErrorMessage(e.message);

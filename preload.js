@@ -54,7 +54,6 @@ window.csvToExcel = async function (name) {
 		// async awaits not working in ExcelButton,js...
 		await new Promise((r) => setTimeout(r, 2000));
 		convertCsvToXlsx(source, destination);
-		console.log("aaa");
 	} catch (e) {
 		throw e;
 	}
