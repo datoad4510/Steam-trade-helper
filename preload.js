@@ -337,7 +337,7 @@ window.saveCSV = async (csv) => {
 	// if exists delete
 
 	// else delete success, handle that if you need to
-	fs.writeFile(path.join("in", "csv", destination_name), csv, function (err) {
+	fs.writeFile(path.join("__dirname","in", "csv", destination_name), csv, function (err) {
 		if (err) {
 			console.error(err);
 		}
