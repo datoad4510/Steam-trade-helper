@@ -9,7 +9,7 @@ function createWindow() {
 		width: 800,
 		height: 700,
 		title: "Hydra",
-		icon: "icon/hydra.png",
+		icon: "icon/hydra1.png",
 		autoHideMenuBar: true,
 		backgroundColor: "white",
 		webPreferences: {
@@ -25,7 +25,7 @@ function createWindow() {
 	let devtools = new BrowserWindow({
 		autoHideMenuBar: true,
 		title: "Console",
-		icon: "icon/hydra.png",
+		icon: "icon/hydra1.png",
 	});
 	window.webContents.setDevToolsWebContents(devtools.webContents);
 	window.webContents.openDevTools({ mode: "detach" });
