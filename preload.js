@@ -6,6 +6,33 @@ const puppeteer = require("puppeteer");
 const { parse } = require("json2csv");
 const { get } = require("http");
 
+function timeConverter(UNIX_timestamp) {
+	var a = new Date(UNIX_timestamp * 1000);
+	var months = [
+		"Jan",
+		"Feb",
+		"Mar",
+		"Apr",
+		"May",
+		"Jun",
+		"Jul",
+		"Aug",
+		"Sep",
+		"Oct",
+		"Nov",
+		"Dec",
+	];
+	var year = a.getFullYear();
+	var month = months[a.getMonth()];
+	var date = a.getDate();
+	var hour = a.getHours();
+	var min = a.getMinutes();
+	var sec = a.getSeconds();
+	var time =
+		date + " " + month + " " + year + " " + hour + ":" + min + ":" + sec;
+	return time;
+}
+
 window.csvToExcel = async function (name) {
 	// console.log("executed");
 	let source = path.join(__dirname, "in", "csv", "users.csv");
@@ -141,9 +168,9 @@ window.searchSteamFriends = async (name, pagenum) => {
 		// get array of all games
 		// ! Filtering games not working!
 		playtimes = playtimes.response.games;
-		let playtime = 0;
+		let playtime = "Unknown";
 		if (playtimes) {
-			for (let i = 0; i < playtimes.length; ++i) {
+			for (let i = playtimes.length - 1; i >= 0; --i) {
 				if (playtimes[i].appid === 440) {
 					playtime = playtimes[i].playtime_forever;
 					break;
@@ -151,8 +178,79 @@ window.searchSteamFriends = async (name, pagenum) => {
 			}
 		}
 		// divide by 60 minutes to get hours
-		element.Playtime = playtime / 60.0;
+		if (playtime !== "Unknown") {
+			element.Playtime = playtime / 60.0;
+		}
 		console.log(element);
+
+		// ! Can be optimised to use less requests! request 100 users at a time (but order might be jumbled in array)
+		// https://steamapi.xpaw.me/#ISteamUser/GetPlayerSummaries
+		let playerSummary = await fetch(
+			`https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${steamWebApiKey}&steamids=${element.ID}`
+		).then((res) => res.json());
+		let communityvisibilitystate;
+		let timecreated;
+		let lastlogoff;
+		let loccountrycode;
+		if (
+			typeof playerSummary.response === undefined ||
+			playerSummary.response.players.length === 0
+		) {
+			// error, no such players or no response
+			communityvisibilitystate = "Unknown";
+			timecreated = "Unknown";
+			lastlogoff = "Unknown";
+			loccountrycode = "Unknown";
+		} else {
+			communityvisibilitystate =
+				playerSummary.response.players[0].communityvisibilitystate;
+			if (typeof communityvisibilitystate === "undefined")
+				communityvisibilitystate = "Unknown";
+
+			timecreated = playerSummary.response.players[0].timecreated;
+			if (typeof timecreated === "undefined") timecreated = "Unknown";
+
+			lastlogoff = playerSummary.response.players[0].lastlogoff;
+			if (typeof lastlogoff === "undefined") lastlogoff = "Unknown";
+
+			loccountrycode = playerSummary.response.players[0].loccountrycode;
+			if (typeof loccountrycode === "undefined")
+				loccountrycode = "Unknown";
+		}
+		// ? https://wiki.teamfortress.com/wiki/WebAPI/GetPlayerSummaries
+		switch (communityvisibilitystate) {
+			case 1:
+				element.Visibility = "Private";
+				break;
+			case 2:
+				element.Visibility = "Friends only";
+				break;
+			case 3:
+				element.Visibility = "Friends of Friends";
+				break;
+			case 4:
+				element.Visibility = "Users Only";
+				break;
+			case 5:
+				element.Visibility = "Public";
+				break;
+			default:
+				break;
+		}
+
+		if (timecreated !== "Unknown") {
+			element.TimeCreated = timeConverter(timecreated);
+		} else {
+			element.TimeCreated = timecreated;
+		}
+
+		if (LastLogoff !== "Unknown") {
+			element.LastLogoff = timeConverter(LastLogoff);
+		} else {
+			element.LastLogoff = LastLogoff;
+		}
+
+		element.CountryCode = loccountrycode;
 	}
 
 	console.log("users:", users);
