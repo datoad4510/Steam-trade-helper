@@ -2,17 +2,26 @@ import React, { useState } from "react";
 import ReactDOM from "react-dom";
 import fetch from "node-fetch";
 
-fetch(
-	"https://backpack.tf/api/IGetUsers/v3?steamid=qurdebssicoxle&key=5feba94f6554887de7260f51"
-)
-	.then((res) => res.json())
-	.then((data) => console.log(data));
-
 export default function ExcelButton() {
-	let searchSteamFriendsMultiPage = async (name, first, last) => {
+	let searchSteamFriendsMultiPage = async (
+		name,
+		first,
+		last,
+		timeout,
+		backpackapi,
+		steamapi
+	) => {
 		let users = [];
 		for (let i = first; i <= last; ++i) {
-			users = users.concat(await window.searchSteamFriends(name, i));
+			users = users.concat(
+				await window.searchSteamFriends(
+					name,
+					i,
+					timeout,
+					backpackapi,
+					steamapi
+				)
+			);
 			setCurrentPage(i);
 		}
 		setFirstPage(0);
@@ -27,7 +36,9 @@ export default function ExcelButton() {
 	const [FirstPage, setFirstPage] = useState(0);
 	const [LastPage, setLastPage] = useState(0);
 	const [CurrentPage, setCurrentPage] = useState(0);
-	const [ApiKey, setApiKey] = useState("");
+	const [Timeout, setTimeout] = useState(10);
+	const [backpackTfApiKey, setBackpackTfApiKey] = useState("");
+	const [steamApiKey, setSteamApiKey] = useState("");
 	// TODO: make ErrorMessage an array of errors
 	async function onSubmit(event) {
 		event.preventDefault();
@@ -35,11 +46,18 @@ export default function ExcelButton() {
 		let json;
 		setErrorMessage("");
 		try {
+			console.log(backpackTfApiKey, steamApiKey);
 			json = await searchSteamFriendsMultiPage(
 				UserName,
 				FirstPage,
-				LastPage
+				LastPage,
+				Timeout * 1000,
+				backpackTfApiKey,
+				steamApiKey
 			);
+			// fixes incorrect loading bug
+			document.getElementById("first").value = "";
+			document.getElementById("last").value = "";
 			console.log("Logging JSON");
 			console.log(json);
 		} catch (e) {
@@ -86,38 +104,87 @@ export default function ExcelButton() {
 	const myChangeHandlerLast = (event) => {
 		setLastPage(event.target.value);
 	};
+	const myChangeHandlerTimeout = (event) => {
+		setTimeout(event.target.value);
+	};
+	const myChangeHandlerBackpackTfApiKey = (event) => {
+		setBackpackTfApiKey(event.target.value);
+	};
+	const myChangeHandlerSteamApiKey = (event) => {
+		setSteamApiKey(event.target.value);
+	};
 
 	return (
 		<>
-			<form action="" method="get" onSubmit={onSubmit}>
+			<form id="excel-form" action="" method="get" onSubmit={onSubmit}>
+				<label htmlFor="username">Search term: </label>
 				<input
 					type="search"
 					name="username"
 					id="username"
 					onChange={myChangeHandlerUser}
 				></input>
+				<br></br>
+				<label htmlFor="first">First page: </label>
 				<input
 					type="search"
 					name="first"
 					id="first"
 					onChange={myChangeHandlerFirst}
 				></input>
+				<br></br>
+				<label htmlFor="last">Last page: </label>
 				<input
 					type="search"
 					name="last"
 					id="last"
 					onChange={myChangeHandlerLast}
 				></input>
+				<br></br>
+				<label htmlFor="timeout">
+					Time to wait for a steam page to load in seconds, lower is
+					faster but more error prone:{" "}
+				</label>
+				<input
+					type="search"
+					name="timeout"
+					id="timeout"
+					defaultValue={Timeout}
+					onChange={myChangeHandlerTimeout}
+				></input>
+				<br></br>
+				<label htmlFor="filename">Excel file name: </label>
 				<input
 					type="search"
 					name="filename"
 					id="filename"
 					onChange={myChangeHandlerFile}
 				></input>
-				<input type="submit" value="Convert csv to excel"></input>
+				<br></br>
+				<label htmlFor="backpackapi">Backpack.tf api key: </label>
+				<input
+					type="search"
+					name="backpackapi"
+					id="backpackapi"
+					onChange={myChangeHandlerBackpackTfApiKey}
+				></input>
+				<br></br>
+				<label htmlFor="steamapi">Steam api key: </label>
+				<input
+					type="search"
+					name="steamapi"
+					id="steamapi"
+					onChange={myChangeHandlerSteamApiKey}
+				></input>
+				<br></br>
+				<label htmlFor="submit"></label>
+				<br></br>
+				<input id="submit" type="submit" value="Gather data"></input>
+				<p id="loading">{`${CurrentPage}/${
+					LastPage - FirstPage + 1
+				}`}</p>
+				<>{errorMessage}</>
 			</form>
-			<>{errorMessage}</>
-			<>{`${CurrentPage}/${LastPage - FirstPage + 1}`}</>
 		</>
 	);
 }

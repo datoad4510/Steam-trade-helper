@@ -1,3 +1,61 @@
+html {
+	background-color: #252525;
+	font-family: Georgia, "Times New Roman", Times, serif;
+	color: rgba(39, 230, 39, 0.801);
+}
+#excel-form {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	display: flex;
+	flex-direction: column;
+	width: 50%;
+}
+
 h1 {
 	color: purple;
+}
+
+#loading {
+	text-align: center;
+}
+
+input {
+	background-color: rgb(56, 51, 51);
+	color: rgba(39, 230, 39, 0.801);
+	font-family: Georgia, "Times New Roman", Times, serif;
+	padding-top: 3px;
+	padding-bottom: 3px;
+	padding-left: 5px;
+	padding-right: 5px;
+}
+
+input:focus {
+	// outline:  rgba(39, 230, 39, 0.801);
+	outline-color: rgb(39, 230, 39);
+}
+
+#submit {
+	width: 50%;
+	margin: 0 auto;
+	transition: width 0.4s, background-color 1s, border-radius 0.4s, border-width 0.4s;
+
+}
+
+#submit:hover {
+	background-color: rgb(65, 80, 69);
+	width: 53%;
+	border-radius: 3px;
+	border-width: 2px;
+}
+
+#loading {
+	border-style: solid;
+	border-width: 1px;
+	border-color: green;
+	width: fit-content;
+	margin: 0 auto;
+	margin-top: 5%;
+	padding: 5px 5px 5px 5px;
 }

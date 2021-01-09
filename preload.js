@@ -60,7 +60,13 @@ window.csvToExcel = async function (name) {
 	}
 };
 
-window.searchSteamFriends = async (name, pagenum) => {
+window.searchSteamFriends = async (
+	name,
+	pagenum,
+	timeout,
+	ApiKey,
+	steamWebApiKey
+) => {
 	// const waitFor = (delay) =>
 	// 	new Promise((resolve) => setTimeout(resolve, delay));
 
@@ -97,49 +103,52 @@ window.searchSteamFriends = async (name, pagenum) => {
 	// 	);
 	// });
 	// await page.waitForNavigation({ waitUntil: "domcontentloaded" });
-	await page.waitForTimeout(10000);
-	let users = await page.evaluate(async (pagenum) => {
-		let arr = Array.from(
-			document.querySelectorAll(
-				"#search_results div.searchPersonaInfo > a.searchPersonaName"
-			)
-		);
+	await page.waitForTimeout(timeout);
+	let users = await page.evaluate(
+		async (name, pagenum) => {
+			let arr = Array.from(
+				document.querySelectorAll(
+					"#search_results div.searchPersonaInfo > a.searchPersonaName"
+				)
+			);
 
-		// why does for not work? map works
+			// why does for not work? map works
 
-		// for (let i = 0; i < arr.length; ++i) {
-		// 	const link = arr[i].href;
-		// 	let id = link.split("/");
-		// 	id = id[id.length - 1];
-		// 	console.log(link, id);
-		// 	console.log(arr[i]);
-		// 	arr[i] = {
-		// 		Link: link,
-		// 		Page: pagenum,
-		// 		ID: id,
-		// 	};
-		// 	console.log(arr[i]);
-		// }
-		console.log(arr);
-		return arr.map((element) => {
-			const link = element.href;
-			let id = link.split("/");
-			let vanity = false;
-			if (id[id.length - 2] === "id") vanity = true;
-			id = id[id.length - 1];
+			// for (let i = 0; i < arr.length; ++i) {
+			// 	const link = arr[i].href;
+			// 	let id = link.split("/");
+			// 	id = id[id.length - 1];
+			// 	console.log(link, id);
+			// 	console.log(arr[i]);
+			// 	arr[i] = {
+			// 		Link: link,
+			// 		Page: pagenum,
+			// 		ID: id,
+			// 	};
+			// 	console.log(arr[i]);
+			// }
+			return arr.map((element) => {
+				const link = element.href;
+				let id = link.split("/");
+				let vanity = false;
+				if (id[id.length - 2] === "id") vanity = true;
+				id = id[id.length - 1];
 
-			return {
-				Link: link,
-				Page: pagenum,
-				ID: id,
-				Vanity: vanity,
-			};
-		});
-	}, pagenum);
+				return {
+					SearchTerm: name,
+					Link: link,
+					Page: pagenum,
+					ID: id,
+					Vanity: vanity,
+				};
+			});
+		},
+		name,
+		pagenum
+	);
 	console.log(users);
 
 	// get info from steam web api
-	const steamWebApiKey = "AD2D6E795ECE0C5589872C157A6E750C";
 	for (const element of users) {
 		if (element.Vanity === true) {
 			// convert to id
@@ -179,7 +188,9 @@ window.searchSteamFriends = async (name, pagenum) => {
 		}
 		// divide by 60 minutes to get hours
 		if (playtime !== "Unknown") {
-			element.Playtime = playtime / 60.0;
+			element.PlaytimeHours = playtime / 60.0;
+		} else {
+			element.PlaytimeHours = playtime;
 		}
 		console.log(element);
 
@@ -244,17 +255,16 @@ window.searchSteamFriends = async (name, pagenum) => {
 			element.TimeCreated = timecreated;
 		}
 
-		if (LastLogoff !== "Unknown") {
-			element.LastLogoff = timeConverter(LastLogoff);
+		if (lastlogoff !== "Unknown") {
+			element.LastLogoff = timeConverter(lastlogoff);
 		} else {
-			element.LastLogoff = LastLogoff;
+			element.LastLogoff = lastlogoff;
 		}
 
 		element.CountryCode = loccountrycode;
 	}
 
 	console.log("users:", users);
-	const ApiKey = "5feba94f6554887de7260f51";
 	for (const element of users) {
 		let metal;
 		try {
@@ -298,7 +308,20 @@ window.searchSteamFriends = async (name, pagenum) => {
 };
 
 window.jsonToCSV = (json) => {
-	const fields = ["Link", "Page", "ID", "Refined"];
+	const fields = [
+		"Refined",
+		"PlaytimeHours",
+		"Level",
+		"TimeCreated",
+		"SearchTerm",
+		"Page",
+		"Link",
+		"ID",
+		"Visibility",
+		"LastLogoff",
+		"Vanity",
+		"CountryCode",
+	];
 	const opts = { fields };
 
 	try {

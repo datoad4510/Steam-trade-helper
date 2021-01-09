@@ -2,10 +2,13 @@ const { app, BrowserWindow } = require("electron");
 const path = require("path");
 const convertCsvToXlsx = require("@aternus/csv-to-xlsx");
 //app.commandLine.appendSwitch("disable-features", "OutOfBlinkCors");
+// Menu.setApplicationMenu(null);
+let wind;
 function createWindow() {
-	const win = new BrowserWindow({
-		width: 1200,
-		height: 800,
+	const mainWindow = new BrowserWindow({
+		width: 800,
+		height: 600,
+		autoHideMenuBar: true,
 		backgroundColor: "white",
 		webPreferences: {
 			nodeIntegration: true,
@@ -14,10 +17,10 @@ function createWindow() {
 			preload: path.join(__dirname, "preload.js"),
 		},
 	});
-
-	win.loadFile("index.html");
+	mainWindow.loadFile("index.html");
+	mainWindow.webContents.openDevTools({ mode: "detach" });
 	try {
-		//require("electron-reloader")(module);
+		// require("electron-reloader")(module);
 	} catch (_) {}
 }
 app.whenReady().then(createWindow);
